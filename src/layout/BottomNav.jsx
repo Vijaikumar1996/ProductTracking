@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from "react-router";
-import { FileBarChart, LayoutDashboard, PackagePlus, Users } from "lucide-react";
+import { ClipboardList, FileBarChart, LayoutDashboard, PackagePlus, Users } from "lucide-react";
 
 const BottomNav = () => {
     const navigate = useNavigate();
@@ -8,7 +8,7 @@ const BottomNav = () => {
     const tabs = [
         { name: "Home", path: "/home", icon: <LayoutDashboard fontSize={20} /> },
         { name: "Upload Shipment", path: "/uploadshipment", icon: <PackagePlus fontSize={20} /> },
-        { name: "Users", path: "/enrollments", icon: <Users fontSize={20} /> },
+        { name: "Orders", path: "/orders", icon: <ClipboardList fontSize={20} /> },
         { name: "MIS Reports", path: "/misreports", icon: <FileBarChart fontSize={20} /> },
 
     ];
