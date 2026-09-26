@@ -16,7 +16,6 @@ function InfoItem({ label, value }) {
 }
 
 export default function ViewOrder() {
-
     const navigate = useNavigate();
 
     const { id } = useParams();
@@ -58,15 +57,72 @@ export default function ViewOrder() {
         order.expectedHuCount > 0
             ? Math.round(
                 ((order.deliveredHuCount || 0) /
-                    order.expectedHuCount) * 100
+                    order.expectedHuCount) *
+                100
             )
             : 0;
 
-    return (
+    /*
+     * ============================================================
+     * TRACKING TIMELINE
+     * ============================================================
+     *
+     * Uploaded
+     *     ↓
+     * Received
+     *     ↓
+     * Loaded
+     *     ↓
+     * Delivered
+     *
+     * Current API statuses:
+     *
+     * PENDING_HUB_RECEIVE -> Received
+     * IN_TRANSIT          -> Loaded
+     * DELIVERED           -> Delivered
+     */
 
+    const trackingSteps = [
+        {
+            key: "UPLOADED",
+            title: "Uploaded",
+            description: "Shipment uploaded successfully",
+            completed: true,
+        },
+        {
+            key: "RECEIVED",
+            title: "Received",
+            description: "Shipment received at hub",
+            completed: [
+                "RECEIVED",
+                "LOADED",
+                "DELIVERED",
+            ].includes(order.status),
+        },
+        {
+            key: "LOADED",
+            title: "Loaded",
+            description: "Shipment loaded to vehicle",
+            completed: [
+                "LOADED",
+                "DELIVERED",
+            ].includes(order.status),
+        },
+        {
+            key: "DELIVERED",
+            title: "Delivered",
+            description: "Shipment delivered successfully",
+            completed:
+                order.status === "DELIVERED",
+        },
+    ];
+
+    return (
         <div className="space-y-6">
 
-            {/* Back */}
+            {/* =====================================================
+                BACK
+               ===================================================== */}
 
             <button
                 onClick={() => navigate("/orders")}
@@ -79,7 +135,10 @@ export default function ViewOrder() {
                 ← Back To Orders
             </button>
 
-            {/* Shipment Summary */}
+
+            {/* =====================================================
+                SHIPMENT SUMMARY
+               ===================================================== */}
 
             <div className="bg-white border rounded-2xl p-6">
 
@@ -95,7 +154,6 @@ export default function ViewOrder() {
                     />
 
                     <div>
-
                         <p className="text-xs text-gray-500 mb-1">
                             Status
                         </p>
@@ -109,13 +167,14 @@ export default function ViewOrder() {
                                 text-xs
                                 font-medium
                                 ${
-                                    order.status === "PENDING_HUB_RECEIVE"
+                                    order.status ===
+                                    "PENDING_HUB_RECEIVE"
                                         ? "bg-orange-100 text-orange-700"
-                                        : order.status === "IN_TRANSIT"
+                                        : order.status ===
+                                          "IN_TRANSIT"
                                         ? "bg-blue-100 text-blue-700"
-                                        : order.status === "OUT_FOR_DELIVERY"
-                                        ? "bg-cyan-100 text-cyan-700"
-                                        : order.status === "DELIVERED"
+                                        : order.status ===
+                                          "DELIVERED"
                                         ? "bg-green-100 text-green-700"
                                         : "bg-gray-100 text-gray-700"
                                 }
@@ -123,7 +182,6 @@ export default function ViewOrder() {
                         >
                             {order.status?.replaceAll("_", " ")}
                         </span>
-
                     </div>
 
                     <InfoItem
@@ -140,7 +198,10 @@ export default function ViewOrder() {
 
             </div>
 
-            {/* HU Progress */}
+
+            {/* =====================================================
+                HU PROGRESS
+               ===================================================== */}
 
             <div className="bg-white border rounded-2xl p-6">
 
@@ -170,6 +231,7 @@ export default function ViewOrder() {
 
                     </div>
 
+
                     <div className="bg-gray-50 rounded-xl p-4">
 
                         <p className="text-xs text-gray-500">
@@ -182,6 +244,7 @@ export default function ViewOrder() {
 
                     </div>
 
+
                     <div className="bg-gray-50 rounded-xl p-4">
 
                         <p className="text-xs text-gray-500">
@@ -193,6 +256,7 @@ export default function ViewOrder() {
                         </p>
 
                     </div>
+
 
                     <div className="bg-gray-50 rounded-xl p-4">
 
@@ -207,6 +271,9 @@ export default function ViewOrder() {
                     </div>
 
                 </div>
+
+
+                {/* Progress Bar */}
 
                 <div className="w-full bg-gray-200 rounded-full h-3">
 
@@ -226,81 +293,117 @@ export default function ViewOrder() {
 
             </div>
 
-            {/* Tracking Timeline */}
+
+            {/* =====================================================
+                TRACKING TIMELINE
+               ===================================================== */}
 
             <div className="bg-white border rounded-2xl p-6">
 
-                <h2 className="text-lg font-semibold mb-5">
+                <h2 className="text-lg font-semibold mb-6">
                     Tracking Timeline
                 </h2>
 
-                <div className="space-y-4">
+                <div className="relative">
 
-                    <div className="flex gap-4">
+                    {trackingSteps.map((step, index) => {
 
-                        <div className="w-3 h-3 rounded-full bg-green-500 mt-1" />
+                        const isLast =
+                            index === trackingSteps.length - 1;
 
-                        <div>
+                        return (
+                            <div
+                                key={step.key}
+                                className="
+                                    relative
+                                    flex
+                                    gap-4
+                                    pb-7
+                                    last:pb-0
+                                "
+                            >
 
-                            <p className="font-medium">
-                                Shipment Uploaded
-                            </p>
+                                {/* Vertical Line */}
 
-                            <p className="text-sm text-gray-500">
-                                Shipment created successfully
-                            </p>
+                                {!isLast && (
+                                    <div
+                                        className={`
+                                            absolute
+                                            left-[5px]
+                                            top-3
+                                            w-[2px]
+                                            h-full
+                                            ${
+                                                step.completed
+                                                    ? "bg-green-500"
+                                                    : "bg-gray-200"
+                                            }
+                                        `}
+                                    />
+                                )}
 
-                        </div>
 
-                    </div>
+                                {/* Status Circle */}
 
-                    <div className="flex gap-4 opacity-50">
+                                <div
+                                    className={`
+                                        relative
+                                        z-10
+                                        w-3
+                                        h-3
+                                        mt-1
+                                        rounded-full
+                                        flex-shrink-0
+                                        ${
+                                            step.completed
+                                                ? "bg-green-500"
+                                                : "bg-gray-300"
+                                        }
+                                    `}
+                                />
 
-                        <div className="w-3 h-3 rounded-full bg-gray-400 mt-1" />
 
-                        <div>
+                                {/* Timeline Content */}
 
-                            <p className="font-medium">
-                                Received At Hub
-                            </p>
+                                <div
+                                    className={
+                                        step.completed
+                                            ? "opacity-100"
+                                            : "opacity-50"
+                                    }
+                                >
 
-                        </div>
+                                    <p
+                                        className={`
+                                            font-medium
+                                            ${
+                                                step.completed
+                                                    ? "text-gray-800"
+                                                    : "text-gray-500"
+                                            }
+                                        `}
+                                    >
+                                        {step.title}
+                                    </p>
 
-                    </div>
+                                    <p className="text-sm text-gray-500 mt-1">
+                                        {step.description}
+                                    </p>
 
-                    <div className="flex gap-4 opacity-50">
+                                </div>
 
-                        <div className="w-3 h-3 rounded-full bg-gray-400 mt-1" />
-
-                        <div>
-
-                            <p className="font-medium">
-                                Loaded To Vehicle
-                            </p>
-
-                        </div>
-
-                    </div>
-
-                    <div className="flex gap-4 opacity-50">
-
-                        <div className="w-3 h-3 rounded-full bg-gray-400 mt-1" />
-
-                        <div>
-
-                            <p className="font-medium">
-                                Delivered
-                            </p>
-
-                        </div>
-
-                    </div>
+                            </div>
+                        );
+                    })}
 
                 </div>
 
             </div>
 
-            {/* Customer Details */}
+
+            {/* =====================================================
+                CUSTOMER DETAILS
+               ===================================================== */}
 
             <div className="bg-white border rounded-2xl p-6">
 
@@ -327,6 +430,7 @@ export default function ViewOrder() {
 
                 </div>
 
+
                 <div className="mt-6">
 
                     <p className="text-xs text-gray-500 mb-2">
@@ -341,7 +445,10 @@ export default function ViewOrder() {
 
             </div>
 
-            {/* Transport Details */}
+
+            {/* =====================================================
+                TRANSPORT DETAILS
+               ===================================================== */}
 
             <div className="bg-white border rounded-2xl p-6">
 
@@ -371,6 +478,5 @@ export default function ViewOrder() {
             </div>
 
         </div>
-
     );
 }

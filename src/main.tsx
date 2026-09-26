@@ -10,7 +10,7 @@ import "swiper/swiper-bundle.css";
 import "flatpickr/dist/flatpickr.css";
 import "flatpickr/dist/themes/light.css";
 
-import App from "./App.tsx";
+import App from "./App.jsx";
 import { store } from "./store/index.js";
 import { AppWrapper } from "./components/common/PageMeta.tsx";
 import { ThemeProvider } from "./context/ThemeContext.tsx";
