@@ -285,15 +285,7 @@ export default function Orders() {
                     + Upload Shipment
                 </Button> */}
 
-                <Button
-                onClick={() =>
-                        navigate("/uploadshipment")
-                    }
-                    startIcon={<PackagePlus size={16} />}
-                    className="!bg-blue-600 hover:!bg-blue-700"
-                >
-                    Upload Shipment
-                </Button>
+              
 
             </div>
 
