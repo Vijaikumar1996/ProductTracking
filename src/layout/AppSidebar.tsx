@@ -504,12 +504,14 @@ const AppSidebar: React.FC = () => {
         } flex`}
       >
         <Link to="/home">
-          {isMobileOpen ? (
-            <span className="text-xl font-bold text-gray-800 dark:text-white mt-5">
-              {user?.InstituteName ||
-                "Tuition Center"}
-            </span>
-          ) : isExpanded || isHovered ? (
+          {
+          // isMobileOpen ? (
+          //   <span className="text-xl font-bold text-gray-800 dark:text-white mt-5">
+          //     {user?.InstituteName ||
+          //       "Tuition Center"}
+          //   </span>
+          // ) :
+            isExpanded || isHovered ? (
             <>
               <div className="flex items-center justify-start gap-3 w-full px-2">
                 <img

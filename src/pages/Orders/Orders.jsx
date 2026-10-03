@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { useForm } from "react-hook-form";
 
 import DataTable from "../../components/common/DataTable";
@@ -8,15 +8,84 @@ import FormGrid from "../../components/form/FormGrid";
 import { useShipments } from "../../queries/useShipment";
 import DateField from "../../components/form/form-input/DateField";
 import Button from "../../components/ui/button/Button";
-import { PackagePlus } from "lucide-react";
+import SelectField from "../../components/form/form-input/SelectField";
 
 export default function Orders() {
-
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
 
     const today = new Date()
         .toISOString()
         .split("T")[0];
+
+    // ---------------------------------------------------------
+    // Dashboard filter
+    // ---------------------------------------------------------
+
+    const dashboardFilter =
+        searchParams.get("dashboardFilter") || "";
+
+    // ---------------------------------------------------------
+    // Convert dashboard filter into actual order filters
+    // ---------------------------------------------------------
+
+    const getDashboardFilters = () => {
+        switch (dashboardFilter) {
+            case "todayUploads":
+                return {
+                    saleOrderNo: "",
+                    fromDate: today,
+                    toDate: today,
+                    status: "UPLOADED",
+                };
+
+            case "pendingHubReceive":
+                return {
+                    saleOrderNo: "",
+                    fromDate: "",
+                    toDate: "",
+                    status: "UPLOADED",
+                };
+
+            case "productsInHub":
+                return {
+                    saleOrderNo: "",
+                    fromDate: "",
+                    toDate: "",
+                    status: "RECEIVED",
+                };
+
+            case "outForDelivery":
+                return {
+                    saleOrderNo: "",
+                    fromDate: "",
+                    toDate: "",
+                    status: "LOADED",
+                };
+
+            case "deliveredToday":
+                return {
+                    saleOrderNo: "",
+                    fromDate: today,
+                    toDate: today,
+                    status: "DELIVERED",
+                };
+
+            default:
+                return {
+                    saleOrderNo: "",
+                    fromDate: "",
+                    toDate: "",
+                    status: "",
+                };
+        }
+    };
+
+    const initialFilters = getDashboardFilters();
+
+    // ---------------------------------------------------------
+    // Form
+    // ---------------------------------------------------------
 
     const {
         control,
@@ -25,68 +94,79 @@ export default function Orders() {
         watch,
         setValue,
     } = useForm({
-        defaultValues: {
-            saleOrderNo: "",
-            fromDate: today,
-            toDate: today,
-            status: "",
-        },
+        defaultValues: initialFilters,
     });
 
     const fromDate = watch("fromDate");
 
-    const [filters, setFilters] = useState({
-        saleOrderNo: "",
-        fromDate: today,
-        toDate: today,
-        status: "",
-    });
+    // ---------------------------------------------------------
+    // API filters
+    // ---------------------------------------------------------
+
+    const [filters, setFilters] = useState(initialFilters);
+
+    // ---------------------------------------------------------
+    // Apply dashboard filter when URL changes
+    // ---------------------------------------------------------
 
     useEffect(() => {
+        const newFilters = getDashboardFilters();
 
-        const currentToDate =
-            getValues("toDate");
+        setValue("saleOrderNo", newFilters.saleOrderNo);
+        setValue("fromDate", newFilters.fromDate);
+        setValue("toDate", newFilters.toDate);
+        setValue("status", newFilters.status);
+
+        setFilters(newFilters);
+    }, [dashboardFilter]);
+
+    // ---------------------------------------------------------
+    // Make sure To Date is not before From Date
+    // ---------------------------------------------------------
+
+    useEffect(() => {
+        const currentToDate = getValues("toDate");
 
         if (
             currentToDate &&
             fromDate &&
             currentToDate < fromDate
         ) {
-            setValue(
-                "toDate",
-                fromDate
-            );
+            setValue("toDate", fromDate);
         }
-
     }, [
         fromDate,
         getValues,
         setValue,
     ]);
 
+    // ---------------------------------------------------------
+    // Get shipments
+    // ---------------------------------------------------------
+
     const {
         data: shipments = [],
         isLoading,
     } = useShipments(filters);
 
-    const handleSearch = () => {
+    // ---------------------------------------------------------
+    // Manual search
+    // ---------------------------------------------------------
 
+    const handleSearch = () => {
         const values = getValues();
 
         setFilters({
-            saleOrderNo:
-                values.saleOrderNo,
-
-            fromDate:
-                values.fromDate,
-
-            toDate:
-                values.toDate,
-
-            status:
-                values.status,
+            saleOrderNo: values.saleOrderNo || "",
+            fromDate: values.fromDate || "",
+            toDate: values.toDate || "",
+            status: values.status || "",
         });
     };
+
+    // ---------------------------------------------------------
+    // Transform API data
+    // ---------------------------------------------------------
 
     const orders = shipments.map((shipment) => ({
         id: shipment.id,
@@ -94,8 +174,9 @@ export default function Orders() {
         saleOrderNo: shipment.saleOrderNo,
 
         shipmentDate: shipment.shipmentDate
-            ? new Date(shipment.shipmentDate)
-                .toLocaleDateString("en-GB")
+            ? new Date(
+                shipment.shipmentDate
+            ).toLocaleDateString("en-GB")
             : "-",
 
         expectedHuCount:
@@ -115,12 +196,20 @@ export default function Orders() {
                 : "-",
     }));
 
+    // ---------------------------------------------------------
+    // Pinned columns
+    // ---------------------------------------------------------
+
     const pinnedColumns = useMemo(
         () => ({
             left: ["saleOrderNo"],
         }),
         []
     );
+
+    // ---------------------------------------------------------
+    // Table columns
+    // ---------------------------------------------------------
 
     const columns = useMemo(
         () => [
@@ -158,7 +247,6 @@ export default function Orders() {
                 accessorKey: "status",
                 header: "Status",
                 cell: ({ row }) => {
-
                     const status =
                         row.original.status;
 
@@ -179,16 +267,16 @@ export default function Orders() {
                     return (
                         <span
                             className={`
-                                px-3
-                                py-1
-                                rounded-full
-                                text-xs
-                                font-medium
-                                whitespace-nowrap
-                                ${styles[status] ||
+                px-3
+                py-1
+                rounded-full
+                text-xs
+                font-medium
+                whitespace-nowrap
+                ${styles[status] ||
                                 "bg-gray-100 text-gray-700"
                                 }
-                            `}
+              `}
                         >
                             {status?.replaceAll(
                                 "_",
@@ -220,11 +308,11 @@ export default function Orders() {
                             )
                         }
                         className="
-                            text-blue-600
-                            hover:underline
-                            whitespace-nowrap
-                            font-medium
-                        "
+              text-blue-600
+              hover:underline
+              whitespace-nowrap
+              font-medium
+            "
                     >
                         View
                     </button>
@@ -234,6 +322,10 @@ export default function Orders() {
         [navigate]
     );
 
+    // ---------------------------------------------------------
+    // Loading
+    // ---------------------------------------------------------
+
     if (isLoading) {
         return (
             <div className="p-6">
@@ -242,9 +334,14 @@ export default function Orders() {
         );
     }
 
+    // ---------------------------------------------------------
+    // Page
+    // ---------------------------------------------------------
+
     return (
         <div className="space-y-6">
 
+            {/* Header */}
             <div className="flex items-center justify-between">
 
                 <div>
@@ -257,44 +354,16 @@ export default function Orders() {
                     </p>
                 </div>
 
-                {/* <button
-                    onClick={() =>
-                        navigate("/uploadshipment")
-                    }
-                    className="
-                        px-5
-                        py-2.5
-                        bg-blue-600
-                        text-white
-                        rounded-xl
-                        hover:bg-blue-700
-                        transition
-                    "
-                >
-                    + Upload Shipment
-                </button> */}
-                {/* <Button
-                    onClick={() =>
-                        navigate("/uploadshipment")
-                    }
-                    type="button"
-                    variant="primary"
-                    className="bg-blue-600! text-white hover:bg-blue-700! transition"
-                    size="sm"
-                >
-                    + Upload Shipment
-                </Button> */}
-
-              
-
             </div>
 
+            {/* Filters */}
             <div className="bg-white p-5 rounded-2xl border border-gray-200">
 
                 <div className="mb-5">
 
                     <FormGrid cols={5}>
 
+                        {/* Sales Order */}
                         <InputField
                             name="saleOrderNo"
                             label="Sales Order"
@@ -302,12 +371,14 @@ export default function Orders() {
                             control={control}
                         />
 
+                        {/* From Date */}
                         <DateField
                             name="fromDate"
                             label="From Date"
                             control={control}
                         />
 
+                        {/* To Date */}
                         <DateField
                             name="toDate"
                             label="To Date"
@@ -315,50 +386,44 @@ export default function Orders() {
                             minDate={fromDate}
                         />
 
-                        <div>
+                        {/* Status */}
 
-                            <label className="block text-sm font-medium mb-2">
-                                Status
-                            </label>
+                       
+                          <SelectField
+                            name="status"
+                            label="Status"
+                            control={control}
+                            options={[
+                                {
+                                    id: "",
+                                    name: "All",
+                                },
+                                {
+                                    id: "UPLOADED",
+                                    name: "Pending Hub Receive",
+                                },
+                                {
+                                    id: "RECEIVED",
+                                    name: "Products in Hub",
+                                },
+                                {
+                                    id: "LOADED",
+                                    name: "Out For Delivery",
+                                },
+                                {
+                                    id: "DELIVERED",
+                                    name: "Delivered",
+                                },
+                            ]}
+                        />
 
-                            <select
-                                {...register("status")}
-                                className="
-                                    w-full
-                                    border border-gray-300
-                                    rounded-xl
-                                    px-4 py-2.5
-                                    text-sm
-                                "
-                            >
-                                <option value="">
-                                    All Status
-                                </option>
 
-                                <option value="PENDING_HUB_RECEIVE">
-                                    Pending Hub Receive
-                                </option>
-
-                                <option value="IN_TRANSIT">
-                                    In Transit
-                                </option>
-
-                                <option value="OUT_FOR_DELIVERY">
-                                    Out For Delivery
-                                </option>
-
-                                <option value="DELIVERED">
-                                    Delivered
-                                </option>
-
-                            </select>
-
-                        </div>
-
+                        {/* Search */}
                         <div className="flex items-end">
+
                             <Button
                                 type="button"
-                                className="w-full mt-6 "
+                                className="w-full mt-6"
                                 onClick={handleSearch}
                             >
                                 Search
@@ -370,6 +435,7 @@ export default function Orders() {
 
                 </div>
 
+                {/* Orders table */}
                 <DataTable
                     data={orders}
                     columns={columns}
@@ -377,6 +443,8 @@ export default function Orders() {
                     pinnedColumns={pinnedColumns}
                     emptyMessage="No orders found"
                     globalSearch={true}
+                    exportFileName="Orders"
+                    exportSheetName="Orders"
                 />
 
             </div>

@@ -17,7 +17,7 @@ export default function DashboardMetrics({ data }) {
       count: data?.todayUploads || 0,
       label: "Orders",
       icon: Upload,
-      route: "/orders",
+      route: "/orders?dashboardFilter=todayUploads",
       borderColor: "border-l-blue-500",
       iconBg: "bg-blue-100",
       iconColor: "text-blue-600",
@@ -27,7 +27,7 @@ export default function DashboardMetrics({ data }) {
       count: data?.pendingHubReceive || 0,
       label: "Orders",
       icon: Package,
-      route: "/orders",
+      route: "/orders?dashboardFilter=pendingHubReceive",
       borderColor: "border-l-orange-500",
       iconBg: "bg-orange-100",
       iconColor: "text-orange-600",
@@ -37,7 +37,7 @@ export default function DashboardMetrics({ data }) {
       count: data?.productsInHub || 0,
       label: "Orders",
       icon: Warehouse,
-      route: "/orders",
+      route: "/orders?dashboardFilter=productsInHub",
       borderColor: "border-l-purple-500",
       iconBg: "bg-purple-100",
       iconColor: "text-purple-600",
@@ -47,7 +47,7 @@ export default function DashboardMetrics({ data }) {
       count: data?.outForDelivery || 0,
       label: "Orders",
       icon: Truck,
-      route: "/orders",
+      route: "/orders?dashboardFilter=outForDelivery",
       borderColor: "border-l-cyan-500",
       iconBg: "bg-cyan-100",
       iconColor: "text-cyan-600",
@@ -57,15 +57,14 @@ export default function DashboardMetrics({ data }) {
       count: data?.deliveredToday || 0,
       label: "Orders",
       icon: CheckCircle2,
-      route: "/orders",
+      route: "/orders?dashboardFilter=deliveredToday",
       borderColor: "border-l-green-500",
       iconBg: "bg-green-100",
       iconColor: "text-green-600",
     },
     {
       title: "Missing Packages",
-      count:
-        data?.missingPackages?.totalMissingPackages || 0,
+      count: data?.missingPackages?.totalMissingPackages || 0,
       label: "Packages",
       icon: AlertTriangle,
       route: "/misreports",
@@ -84,7 +83,7 @@ export default function DashboardMetrics({ data }) {
           <div
             key={index}
             onClick={() => navigate(card.route)}
-            className={`cursor-pointer rounded-2xl border border-gray-200 border-l-4 ${card.borderColor} bg-white py-4 px-4 hover:shadow-md`}
+            className={`cursor-pointer rounded-2xl border border-gray-200 border-l-4 ${card.borderColor} bg-white px-4 py-4 hover:shadow-md transition-shadow`}
           >
             <div className="flex justify-between">
               <div>

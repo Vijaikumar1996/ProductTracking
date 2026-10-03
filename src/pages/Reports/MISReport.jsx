@@ -266,16 +266,20 @@ export default function MISReport() {
                             control={control}
                             options={[
                                 {
+                                    id: "",
+                                    name: "All",
+                                },
+                                {
                                     id: "UPLOADED",
-                                    name: "Uploaded",
+                                    name: "Pending Hub Receive",
                                 },
                                 {
                                     id: "RECEIVED",
-                                    name: "Received",
+                                    name: "Products in Hub",
                                 },
                                 {
                                     id: "LOADED",
-                                    name: "Loaded",
+                                    name: "Out For Delivery",
                                 },
                                 {
                                     id: "DELIVERED",
